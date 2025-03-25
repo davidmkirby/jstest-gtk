@@ -36,6 +36,7 @@
 #include "rudder_widget.hpp"
 #include "axis_widget.hpp"
 
+// Forward declarations
 class Joystick;
 class JoystickGui;
 class ButtonWidget;

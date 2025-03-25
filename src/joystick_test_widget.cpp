@@ -23,12 +23,12 @@
 #include <gtkmm/dialog.h>
 #include <gtkmm/image.h>
 
+#include "joystick_test_widget.hpp"
 #include "main.hpp"
 #include "joystick.hpp"
 #include "button_widget.hpp"
 #include "joystick_map_widget.hpp"
 #include "joystick_calibration_widget.hpp"
-#include "joystick_test_widget.hpp"
 
 JoystickTestWidget::JoystickTestWidget(JoystickGui& gui, Joystick& joystick_, bool simple_ui) :
   Gtk::Window(),
@@ -131,27 +131,36 @@ JoystickTestWidget::JoystickTestWidget(JoystickGui& gui, Joystick& joystick_, bo
     raw_value_callbacks.push_back(sigc::signal<void, int>());
   }
 
-  switch(joystick.get_axis_count())
-  {
-  case 2: // Simple stick
+  // Check if this is a Thrustmaster HOTAS Warthog or always add stick widget for first two axes
+  bool is_thrustmaster = (joystick.get_name().find("Thrustmaster") != std::string::npos);
+  bool has_at_least_two_axes = (joystick.get_axis_count() >= 2);
+  
+  // Always show main stick widget for first two axes if device has at least 2 axes
+  if (has_at_least_two_axes) {
     stick_hbox.pack_start(stick1_widget, Gtk::PACK_EXPAND_PADDING);
     raw_value_callbacks[0].connect(sigc::mem_fun(stick1_widget, &AxisWidget::set_raw_x));
     raw_value_callbacks[1].connect(sigc::mem_fun(stick1_widget, &AxisWidget::set_raw_y));
+  }
+
+  // Continue with the regular joystick type handling
+  switch(joystick.get_axis_count())
+  {
+  case 2: // Simple stick
+    // Already handled above
     break;
 
   case 6: // Flightstick
   {
     Gtk::Table& table = *Gtk::manage(new Gtk::Table(2, 2));
 
-    table.attach(stick1_widget, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
+    // Don't add stick1_widget again since we already did it above
     table.attach(rudder_widget,   0, 1, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
     table.attach(throttle_widget, 1, 2, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
 
     stick_hbox.pack_start(table, Gtk::PACK_EXPAND_PADDING);
     stick_hbox.pack_start(stick3_widget, Gtk::PACK_EXPAND_PADDING);
 
-    raw_value_callbacks[0].connect(sigc::mem_fun(stick1_widget, &AxisWidget::set_raw_x));
-    raw_value_callbacks[1].connect(sigc::mem_fun(stick1_widget, &AxisWidget::set_raw_y));
+    // Don't connect stick1_widget again
     axis_callbacks[2].connect(sigc::mem_fun(rudder_widget, &RudderWidget::set_pos));
     axis_callbacks[3].connect(sigc::mem_fun(throttle_widget, &ThrottleWidget::set_pos));
     raw_value_callbacks[4].connect(sigc::mem_fun(stick3_widget, &AxisWidget::set_raw_x));
@@ -160,14 +169,13 @@ JoystickTestWidget::JoystickTestWidget(JoystickGui& gui, Joystick& joystick_, bo
   }
 
   case 8: // Dual Analog Gamepad + Analog Trigger
-    stick_hbox.pack_start(stick1_widget, Gtk::PACK_EXPAND_PADDING);
+    // Don't add stick1_widget again
     stick_hbox.pack_start(stick2_widget, Gtk::PACK_EXPAND_PADDING);
     stick_hbox.pack_start(stick3_widget, Gtk::PACK_EXPAND_PADDING);
     stick_hbox.pack_start(left_trigger_widget, Gtk::PACK_EXPAND_PADDING);
     stick_hbox.pack_start(right_trigger_widget, Gtk::PACK_EXPAND_PADDING);
 
-    raw_value_callbacks[0].connect(sigc::mem_fun(stick1_widget, &AxisWidget::set_raw_x));
-    raw_value_callbacks[1].connect(sigc::mem_fun(stick1_widget, &AxisWidget::set_raw_y));
+    // Don't connect stick1_widget again
     raw_value_callbacks[2].connect(sigc::mem_fun(stick2_widget, &AxisWidget::set_raw_x));
     raw_value_callbacks[3].connect(sigc::mem_fun(stick2_widget, &AxisWidget::set_raw_y));
     raw_value_callbacks[6].connect(sigc::mem_fun(stick3_widget, &AxisWidget::set_raw_x));
@@ -176,14 +184,12 @@ JoystickTestWidget::JoystickTestWidget(JoystickGui& gui, Joystick& joystick_, bo
     axis_callbacks[5].connect(sigc::mem_fun(right_trigger_widget, &ThrottleWidget::set_pos));
     break;
 
-
   case 7: // Dual Analog Gamepad DragonRise Inc. Generic USB Joystick
-    stick_hbox.pack_start(stick1_widget, Gtk::PACK_EXPAND_PADDING);
+    // Don't add stick1_widget again
     stick_hbox.pack_start(stick2_widget, Gtk::PACK_EXPAND_PADDING);
     stick_hbox.pack_start(stick3_widget, Gtk::PACK_EXPAND_PADDING);
 
-    raw_value_callbacks[0].connect(sigc::mem_fun(stick1_widget, &AxisWidget::set_raw_x));
-    raw_value_callbacks[1].connect(sigc::mem_fun(stick1_widget, &AxisWidget::set_raw_y));
+    // Don't connect stick1_widget again
     raw_value_callbacks[3].connect(sigc::mem_fun(stick2_widget, &AxisWidget::set_raw_x));
     raw_value_callbacks[4].connect(sigc::mem_fun(stick2_widget, &AxisWidget::set_raw_y));
     raw_value_callbacks[5].connect(sigc::mem_fun(stick3_widget, &AxisWidget::set_raw_x));
@@ -191,15 +197,14 @@ JoystickTestWidget::JoystickTestWidget(JoystickGui& gui, Joystick& joystick_, bo
     break;
 
   case 27: // Playstation 3 Controller
-    stick_hbox.pack_start(stick1_widget, Gtk::PACK_EXPAND_PADDING);
+    // Don't add stick1_widget again
     stick_hbox.pack_start(stick2_widget, Gtk::PACK_EXPAND_PADDING);
     // Not using stick3 for now, as the dpad is 4 axis on the PS3, not 2 (one for each direction)
     //stick_hbox.pack_start(stick3_widget, Gtk::PACK_EXPAND_PADDING);
     stick_hbox.pack_start(left_trigger_widget, Gtk::PACK_EXPAND_PADDING);
     stick_hbox.pack_start(right_trigger_widget, Gtk::PACK_EXPAND_PADDING);
 
-    raw_value_callbacks[0].connect(sigc::mem_fun(stick1_widget, &AxisWidget::set_raw_x));
-    raw_value_callbacks[1].connect(sigc::mem_fun(stick1_widget, &AxisWidget::set_raw_y));
+    // Don't connect stick1_widget again
     raw_value_callbacks[2].connect(sigc::mem_fun(stick2_widget, &AxisWidget::set_raw_x));
     raw_value_callbacks[3].connect(sigc::mem_fun(stick2_widget, &AxisWidget::set_raw_y));
     //axis_callbacks[6].connect(sigc::mem_fun(stick3_widget, &AxisWidget::set_x_axis));
@@ -209,9 +214,12 @@ JoystickTestWidget::JoystickTestWidget(JoystickGui& gui, Joystick& joystick_, bo
     break;
 
   default:
-    std::cout << "Warning: unknown joystick, not displaying graphical representation." << std::endl;
+    // Do nothing here, we already added stick1_widget for the first two axes
+    std::cout << "Using default circular display for first two axes" << std::endl;
+    break;
   }
 
+  // Always show the stick widgets unless simple_ui is enabled
   if (!m_simple_ui)
   {
     axis_vbox.pack_start(stick_hbox, Gtk::PACK_SHRINK);
@@ -227,7 +235,7 @@ JoystickTestWidget::JoystickTestWidget(JoystickGui& gui, Joystick& joystick_, bo
 
   calibration_button.signal_clicked().connect(sigc::mem_fun(this, &JoystickTestWidget::on_calibrate));
   mapping_button.signal_clicked().connect(sigc::mem_fun(this, &JoystickTestWidget::on_mapping));
-  close_button.signal_clicked().connect([this]{ hide(); });
+  close_button.signal_clicked().connect(sigc::mem_fun(*this, &Gtk::Widget::hide));
 
   close_button.grab_focus();
 }

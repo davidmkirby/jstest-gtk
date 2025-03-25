@@ -31,6 +31,7 @@
 #include "joystick.hpp"
 #include "main.hpp"
 
+// Static member initialization
 Main* Main::current_ = 0;
 
 JoystickGui::JoystickGui(std::unique_ptr<Joystick> joystick, bool simple_ui, Gtk::Window* parent) :
@@ -73,7 +74,7 @@ JoystickGui::show_mapping_dialog()
   else
   {
     m_mapping_widget.reset(new JoystickMapWidget(*m_joystick));
-    m_mapping_widget->signal_hide().connect([this] { m_calibration_widget.reset(); });
+    m_mapping_widget->signal_hide().connect([this] { m_mapping_widget.reset(); });
     m_mapping_widget->set_transient_for(*m_test_widget);
     m_mapping_widget->show_all();
   }
