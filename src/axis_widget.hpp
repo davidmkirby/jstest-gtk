@@ -21,27 +21,34 @@
 
 #include <gtkmm/drawingarea.h>
 #include <gtkmm/alignment.h>
-
+
 class AxisWidget : public Gtk::Alignment
 {
 private:
   Gtk::DrawingArea drawingarea;
   double x;
   double y;
+  int raw_x;  // Raw value from -32767 to 32767
+  int raw_y;  // Raw value from -32767 to 32767
+  bool show_values;  // Flag to control whether to show values or not
 
 public:
-  AxisWidget(int width, int height);
+  AxisWidget(int width, int height, bool show_values = true);
 
-  bool on_draw(const Cairo::RefPtr<Cairo::Context>& context) override;
+  bool on_draw(const Cairo::RefPtr<Cairo::Context>& context);
 
   void set_x_axis(double x);
-  void set_y_axis(double x);
+  void set_y_axis(double y);
+  
+  // New methods to set raw values
+  void set_raw_x(int raw_x_value);
+  void set_raw_y(int raw_y_value);
 
 private:
   AxisWidget(const AxisWidget&);
   AxisWidget& operator=(const AxisWidget&);
 };
-
+
 #endif
 
 /* EOF */

@@ -76,11 +76,13 @@ private:
 
   std::vector<Gtk::ProgressBar*> axes;
   std::vector<ButtonWidget*>     buttons;
+  std::vector<Gtk::Label*>       axis_value_labels;
 
   Glib::RefPtr<Gdk::Pixbuf> button_on;
   Glib::RefPtr<Gdk::Pixbuf> button_off;
 
   std::vector<sigc::signal<void, double> > axis_callbacks;
+  std::vector<sigc::signal<void, int> > raw_value_callbacks;
 
 public:
   JoystickTestWidget(JoystickGui& gui, Joystick& joystick, bool simple_ui);

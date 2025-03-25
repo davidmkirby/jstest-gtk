@@ -17,10 +17,12 @@
 */
 
 #include "axis_widget.hpp"
-
-AxisWidget::AxisWidget(int width, int height)
+#include <sstream>
+#include <iomanip>
+
+AxisWidget::AxisWidget(int width, int height, bool show_values_)
   : Gtk::Alignment(Gtk::ALIGN_CENTER, Gtk::ALIGN_START, 0.0f, 0.0f),
-    x(0), y(0)
+    x(0), y(0), raw_x(0), raw_y(0), show_values(show_values_)
 {
   //modify_bg(Gtk::STATE_NORMAL , Gdk::Color("white"));
   //modify_fg(Gtk::STATE_NORMAL , Gdk::Color("black"));
@@ -70,6 +72,31 @@ AxisWidget::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     cr->line_to(px+5, py);
     cr->stroke();
 
+    // Display values if enabled
+    if (show_values) {
+        std::ostringstream value_text;
+        value_text << "X: " << std::setw(6) << raw_x << " Y: " << std::setw(6) << raw_y;
+        
+        // Text background for better readability
+        cr->select_font_face("monospace", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL);
+        cr->set_font_size(10);
+        
+        Cairo::TextExtents extents;
+        cr->get_text_extents(value_text.str(), extents);
+        
+        cr->set_source_rgba(1.0, 1.0, 1.0, 0.7);
+        cr->rectangle(w/2 - extents.width/2 - 2, 
+                     h - extents.height - 4,
+                     extents.width + 4,
+                     extents.height + 2);
+        cr->fill();
+        
+        // Draw text
+        cr->set_source_rgb(0.0, 0.0, 0.0);
+        cr->move_to(w/2 - extents.width/2, h - 2);
+        cr->show_text(value_text.str());
+    }
+
   return true;
 }
 
@@ -86,6 +113,21 @@ AxisWidget::set_y_axis(double y_)
   y = y_;
   queue_draw();
 }
-
-/* EOF */
 
+void
+AxisWidget::set_raw_x(int raw_x_value)
+{
+  raw_x = raw_x_value;
+  x = raw_x_value / 32767.0;
+  queue_draw();
+}
+
+void
+AxisWidget::set_raw_y(int raw_y_value)
+{
+  raw_y = raw_y_value;
+  y = raw_y_value / 32767.0;
+  queue_draw();
+}
+
+/* EOF */
